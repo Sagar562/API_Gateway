@@ -1,10 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const {createProxyMiddleware } = require('http-proxy-middleware');
 
-const app = express();
+const { PORT } = require('./config/serverConfig');
 
-const PORT = 3004;
+const app = express();
 
 app.use(morgan('combined'));
 app.use('/booking-service', createProxyMiddleware( {target: 'http://localhost:3002', changeOrigin: true} ));

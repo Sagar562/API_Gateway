@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const {createProxyMiddleware } = require('http-proxy-middleware');
@@ -14,6 +15,30 @@ const limit = rateLimit({
 
 app.use(morgan('combined'));
 app.use(limit);
+
+app.use('/booking-service', async (req, res, next) => {
+    try {
+        const response = await axios.get('http://localhost:3001/api/v1/isAuthenticated', {
+            headers: {
+                'x-access-token': req.headers['x-access-token']
+            }
+        });
+        if (response.data.success) {
+            next();
+        } else {
+            return res.status(401).json({
+                message: 'Unauthorised',
+                success: false
+            });
+        }
+    } catch (error) {
+        return res.status(401).json({
+            message: 'Invalid request',
+            success: false
+        });
+    }    
+});
+
 app.use('/booking-service', createProxyMiddleware( {target: BOOKING_SERVICE_URL, changeOrigin: true} ));
 
 app.get('/home', (req, res) => {

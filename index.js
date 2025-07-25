@@ -38,8 +38,32 @@ app.use('/booking-service', async (req, res, next) => {
         });
     }    
 });
-
 app.use('/booking-service', createProxyMiddleware( {target: BOOKING_SERVICE_URL, changeOrigin: true} ));
+
+// flight service
+app.use('/flight-service', async (req, res, next) => {
+    try {
+        const response = await axios.get(AUTH_SERVICE_URL, {
+            headers: {
+                'x-access-token': req.headers['x-access-token']
+            }
+        });
+        if (response.data.success) {
+            next();
+        } else {
+            return res.status(401).json({
+                message: 'Unauthorised',
+                success: false
+            });
+        }
+    } catch (error) {
+        return res.status(401).json({
+            message: 'Invalid request',
+            success: false
+        });
+    }    
+});
+app.use('flight-service', createProxyMiddleware( {target: FLIGHT_SERVICE_URL, changeOrigin: true} ));
 
 app.get('/home', (req, res) => {
     return res.json({ message: 'Ok' });
